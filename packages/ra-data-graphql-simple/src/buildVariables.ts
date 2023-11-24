@@ -59,6 +59,11 @@ export default (introspectionResults: IntrospectionResult) => (
             return variables;
         }
         case GET_ONE:
+            return {
+                where: {
+                    id: preparedParams.id,
+                },
+            };
         case DELETE:
             return {
                 id: preparedParams.id,
