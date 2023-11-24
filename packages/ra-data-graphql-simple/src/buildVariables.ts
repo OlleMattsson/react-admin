@@ -34,11 +34,48 @@ export default (introspectionResults: IntrospectionResult) => (
 
     switch (raFetchMethod) {
         case GET_LIST: {
-            return buildGetListVariables(introspectionResults)(
+            const builtVars = buildGetListVariables(introspectionResults)(
                 resource,
                 raFetchMethod,
                 preparedParams
             );
+
+            // always add the ordering param to query
+            const orderBy = [
+                {
+                    [builtVars.sortField]: builtVars.sortOrder.toLowerCase(),
+                },
+            ];
+
+            /*
+                optional "where field contains"  filter
+                TODO:
+                    - fix cases sensitivity
+                    - add support for AND OR combinations
+                    - add support for integers "where field EQUALS"
+            */
+            if (Object.keys(builtVars.filter).length) {
+                const searchProp = Object.keys(builtVars.filter)[0];
+
+                const where = {
+                    [searchProp]: {
+                        contains: builtVars.filter[searchProp] || '',
+                    },
+                };
+
+                return {
+                    page: builtVars.page,
+                    perPage: builtVars.perPage,
+                    where,
+                    orderBy,
+                };
+            }
+
+            return {
+                page: builtVars.page,
+                perPage: builtVars.perPage,
+                orderBy,
+            };
         }
         case GET_MANY:
             return {
